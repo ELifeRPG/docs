@@ -1,0 +1,9 @@
+.venv/
+site/
+.cache/
+__pycache__/
+
+# Obsidian: keep shared config, ignore per-device workspace state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
