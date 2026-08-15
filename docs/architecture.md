@@ -57,7 +57,7 @@ graph TB
 |---|---|---|---|---|
 | Gameserver / Mod | — | ArmA Reforger + ELifeRPG mod | — | Bridge (local HTTP) |
 | Bridge API | `eliferpg-reforger-bridge` | .NET, ASP.NET Core minimal API | Game-sliced REST endpoints (session lifecycle, banking, characters, companies) | Keycloak, Core Backend |
-| Core Backend | `eliferpg-core` | .NET modulith (ASP.NET Core) | REST + OpenAPI, real-time push channel | Keycloak, PostgreSQL |
+| Core Backend | `eliferpg-core` | .NET modulith (ASP.NET Core) | REST + OpenAPI | Keycloak, PostgreSQL |
 | Web Portal | `eliferpg-webapp` | Nuxt 4 (Vue 3), Nitro BFF routes | Browser-facing pages, session-cookie backed | Keycloak, Core Backend |
 | Keycloak Theme | `keycloak-theme-eliferpg` | Keycloakify (React + Vite) | Build-only: theme JAR | Deployed into Keycloak, no runtime calls |
 
@@ -122,13 +122,12 @@ to, so the Bridge does it directly.
 
 The Core Backend is built around **event sourcing on PostgreSQL** — one
 event store per bounded module (accounts, characters, banking,
-companies). Each aggregate is an append-only event stream, with
-projections building the read models from it, using optimistic
-concurrency per stream.
+companies). Events aren't an external feed for other services to
+consume; they're the source of truth the Core Backend's own domain logic
+runs on. Each aggregate is reconstructed from its append-only event
+stream, and projections build the read models from those same events,
+using optimistic concurrency per stream.
 
-- The Bridge (and other producers) push events to the Core Backend via a
-  batched, idempotent ingestion endpoint (`POST /api/events/batch`,
-  deduplicated by client-generated GUID).
-- Consumers that need to catch up read `GET /events?since=<sequence>`.
-- Consumers that need live updates subscribe to a **real-time push
-  channel**, fed by a subscription over the event streams.
+The Bridge (and other producers) push events to the Core Backend via a
+batched, idempotent ingestion endpoint (`POST /api/events/batch`,
+deduplicated by client-generated GUID).
