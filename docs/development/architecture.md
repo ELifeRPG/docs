@@ -32,7 +32,7 @@ graph TB
   end
 
   Bridge -- "OAuth2 client credentials<br/>+ token exchange (impersonation)" --> KC
-  Bridge -- "REST, Bearer JWT<br/>game-sliced endpoints" --> Core
+  Bridge -- "REST, Bearer JWT" --> Core
 
   subgraph Core Services
     Core[Core Backend<br/>eliferpg-core, .NET modulith]

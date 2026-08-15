@@ -10,8 +10,14 @@ site_name: ELifeRPG
 # edit_uri: edit/main/docs/
 
 nav:
-  - Get started: index.md
-  - Architecture: architecture.md
+  - Home: index.md
+  - Player Guide:
+      - player/index.md
+  - Development:
+      - development/index.md
+      - Architecture: development/architecture.md
+  - Hosting Documentation:
+      - hosting/index.md
 
 # extra_css:
 #   - stylesheets/extra.css
@@ -43,8 +49,8 @@ theme:
     - navigation.path
     # - navigation.prune
     - navigation.sections
-    # - navigation.tabs
-    # - navigation.tabs.sticky
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
     - navigation.tracking
     - search.highlight
