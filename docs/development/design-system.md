@@ -10,12 +10,12 @@ or icon that isn't already covered here.
 
 ## Logo
 
-<span style="display:inline-flex; gap:24px; align-items:flex-end;">
-<span>
+<span style="display:inline-flex; gap:24px; align-items:flex-start;">
+<span style="display:inline-block; background:#ffffff; padding:12px; border-radius:8px; text-align:center;">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.261627 77.909518" width="120" height="120"><path fill="#1c4fc0" d="M 80.22456,22.53807 68.076458,0 H 21.055044 L 0,38.99231 21.090616,77.909513 68.246559,77.637314 80.261611,55.358674 69.051306,49.433216 60.658955,64.962325 28.642068,65.231072 17.867946,45.241355 61.511427,45.236755 61.476348,32.65233 H 17.839737 l 10.766187,-19.978392 31.881334,-0.0012 8.56485,15.88821 z"/></svg>
-<br><sub>light mode</sub>
+<br><sub style="color:#4a4640;">light mode</sub>
 </span>
-<span style="background:#14161d; padding:12px; border-radius:8px;">
+<span style="display:inline-block; background:#14161d; padding:12px; border-radius:8px; text-align:center;">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80.261627 77.909518" width="120" height="120"><path fill="#ddd9d1" d="M 80.22456,22.53807 68.076458,0 H 21.055044 L 0,38.99231 21.090616,77.909513 68.246559,77.637314 80.261611,55.358674 69.051306,49.433216 60.658955,64.962325 28.642068,65.231072 17.867946,45.241355 61.511427,45.236755 61.476348,32.65233 H 17.839737 l 10.766187,-19.978392 31.881334,-0.0012 8.56485,15.88821 z"/></svg>
 <br><sub style="color:#c6c1b8;">dark mode</sub>
 </span>
