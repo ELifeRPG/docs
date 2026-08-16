@@ -1,0 +1,46 @@
+/*
+ * Brand colors — see docs/development/design-system.md for the full
+ * palette reference and the reasoning behind these specific tokens.
+ */
+
+:root {
+  --md-primary-fg-color: #1c4fc0;
+  --md-primary-fg-color--light: #86a8ef;
+  --md-primary-fg-color--dark: #123a91;
+}
+
+/*
+ * Resting link color comes from --md-typeset-a-color (defaults to
+ * primary), not --md-accent-fg-color (that one only drives hover/focus
+ * and the active nav-item highlight). Both need scheme-specific values
+ * to hit AA contrast on their own background.
+ */
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #123a91;
+  --md-accent-fg-color: #1c4fc0;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: #5482e8;
+  --md-accent-fg-color: #86a8ef;
+  /* A darker, faintly blue-tinted canvas instead of Material's default
+     slate — paired with the deep-blue primary above. */
+  --md-default-bg-color: #14161d;
+}
+
+/*
+ * The logo mark is an inline SVG (theme.icon.logo, not theme.logo — see
+ * design-system.md) with a black base fill, recolored here per scheme.
+ * Dark mode uses light grey instead of staying deep blue: the dark
+ * canvas already carries a lighter accent blue on links, and a second,
+ * different-toned blue on the logo right next to it reads as a mismatch
+ * rather than a choice. This keeps the link color as the only blue in
+ * dark mode.
+ */
+[data-md-color-scheme="default"] .md-logo svg {
+  fill: #1c4fc0;
+}
+
+[data-md-color-scheme="slate"] .md-logo svg {
+  fill: #ddd9d1;
+}
