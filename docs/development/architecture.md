@@ -19,7 +19,7 @@ which translates game-shaped calls into calls against the **Core Backend**
 separate **web portal** talks to the Core Backend independently, for
 player self-service and staff administration.
 
-## Component diagram
+## Components
 
 ``` mermaid
 graph TB
@@ -51,8 +51,6 @@ graph TB
   Theme -. "build artifact (JAR),<br/>deployed into" .-> KC
 ```
 
-## Components
-
 | Component | Repo | Stack | Exposes | Talks to |
 |---|---|---|---|---|
 | Gameserver / Mod | — | ArmA Reforger + ELifeRPG mod | — | Bridge (local HTTP) |
@@ -74,35 +72,28 @@ in the Bridge and get translated into domain commands at the boundary —
 the Core Backend's domain types never depend on Reforger concepts, only
 on its own.
 
-"Local, unauthenticated" is only safe if the endpoint is actually
-unreachable off-host: the Bridge must bind to `127.0.0.1` (not
-`0.0.0.0`), with the gameserver mod as the only caller. This is a
-deployment requirement, not just an implementation detail.
+## Authentication
 
-## Auth model
+Three distinct trust relationships run against the same Keycloak realm,
+one per class of caller.
 
-There are two distinct OAuth2 flows against the same Keycloak realm, one
-per class of caller:
+### Gameserver
 
-- **Service-to-service (Bridge → Core Backend):** OAuth2 **Client
-  Credentials**. The Bridge authenticates to Keycloak as its own
-  confidential client to get a service token, then calls the Core Backend
-  with a Bearer JWT.
-- **Human (Web Portal → Core Backend):** **OIDC** Authorization Code +
-  PKCE — OAuth2 plus an identity layer, since the portal needs to know
-  *who* is signed in, not just that a call is authorized. The browser
-  never holds a token; the Nuxt server exchanges the code at Keycloak's
-  OpenID Connect token endpoint and keeps the resulting ID and access
-  tokens in an httpOnly session cookie. Role/staff checks (`isStaff`,
-  `isAdmin`) are derived from claims on those tokens (a client scope and
-  a realm role), and the access token is replayed as
-  `Authorization: Bearer <token>` when the Nuxt server proxies calls to
-  the Core Backend. Because the browser is authenticated purely via
-  cookie, state-changing BFF routes need CSRF protection (`SameSite`
-  cookie policy plus a CSRF token/double-submit check) — session cookies
-  alone don't imply the request came from the portal's own UI.
+The mod's calls into the Bridge are **local HTTP, no auth**. That's only
+safe if the endpoint is actually unreachable off-host: the Bridge must
+bind to `127.0.0.1` (not `0.0.0.0`), with the gameserver mod as the only
+caller. This is a deployment requirement, not just an implementation
+detail — "local, unauthenticated" becomes an unexpectedly large attack
+surface the moment that binding is wrong.
 
-### Player impersonation (token exchange)
+### Bridge
+
+**Service-to-service (Bridge → Core Backend):** OAuth2 **Client
+Credentials**. The Bridge authenticates to Keycloak as its own
+confidential client to get a service token, then calls the Core Backend
+with a Bearer JWT.
+
+#### Player impersonation (token exchange)
 
 Most Bridge calls act *on behalf of a specific player*, not as the Bridge
 itself. Rather than have the Core Backend trust an arbitrary player id
@@ -140,122 +131,26 @@ Keycloak roles needed (impersonation only, nothing broader), issue
 short-lived tokens, and token-exchange activity should be audited on the
 Core Backend side, ideally tagged with the originating Bridge instance.
 
-## Event-driven design
+### Portal
 
-The Core Backend is built around **event sourcing on PostgreSQL** (via
-Marten) — one event store per bounded module (accounts, characters,
-banking, companies). Events aren't an external feed for other services
-to consume; they're the source of truth the Core Backend's own domain
-logic runs on. Each aggregate is reconstructed from its append-only
-event stream, and projections build the read models from those same
-events, using optimistic concurrency per stream.
+**Human (Web Portal → Core Backend):** **OIDC** Authorization Code +
+PKCE — OAuth2 plus an identity layer, since the portal needs to know
+*who* is signed in, not just that a call is authorized. The browser
+never holds a token; the Nuxt server exchanges the code at Keycloak's
+OpenID Connect token endpoint and keeps the resulting ID and access
+tokens in an httpOnly session cookie. Role/staff checks (`isStaff`,
+`isAdmin`) are derived from claims on those tokens (a client scope and
+a realm role), and the access token is replayed as
+`Authorization: Bearer <token>` when the Nuxt server proxies calls to
+the Core Backend. Because the browser is authenticated purely via
+cookie, state-changing BFF routes need CSRF protection (`SameSite`
+cookie policy plus a CSRF token/double-submit check) — session cookies
+alone don't imply the request came from the portal's own UI.
 
-``` mermaid
-graph TB
-  Req[HTTP / game request] --> Cmd[Command]
-  Cmd --> App[Application handler]
-  App --> Agg[Aggregate]
-  Agg -- reject --> Err[Error response]
-  Agg -- emit --> Ev[Events]
-  Ev --> Store[(Event Store)]
-  Store --> Proj[Projections]
-  Proj --> Read[Read API]
-```
+## Core Backend design
 
-### Domain events vs. technical events
-
-Not everything that happens is worth event-sourcing. `MoneyDeposited`,
-`CharacterCreated`, `CompanyFounded`, and `VehiclePurchased` are domain
-events: they change aggregate state and belong in the append-only
-stream, because the economy and a character's history need to be
-answerable from the log itself (e.g. "why does this player have
-€47,320"). `PlayerConnected`, `PlayerDisconnected`, and
-`HeartbeatReceived` are technical/integration events — useful
-operationally (session tracking, monitoring) but not domain history, so
-they stay outside the event-sourced aggregates as transient messages or
-logs rather than get appended to a stream.
-
-## Module boundaries
-
-Inside the Core modulith, each bounded module (`Accounts`, `Characters`,
-`Banking`, `Companies`) owns its own `Domain`/`Application`/
-`Infrastructure`/`Api` project set. This isn't just a naming convention —
-project references enforce it:
-
-- A module's `Domain`, `Infrastructure`, and `Api` projects can only
-  reference their own module. Reaching into another module at those
-  layers doesn't compile.
-- The only permitted cross-module reference is `Application` →
-  `Application`, and only to call that module's small set of public
-  query contracts (e.g. `CompanyMemberPermissionsQuery`) — never another
-  module's domain types directly.
-
-This produces a strict dependency order: `Accounts` is the root
-(depended on by `Characters`), and `Banking`/`Companies` depend on
-`Characters` (`Companies` also depends on `Banking`). A module never
-depends on one further down the chain.
-
-Within a module's own Application layer, handler visibility is enforced
-by convention and review, not by the compiler — the project-reference
-rule above is what's structurally guaranteed.
-
-## Integration boundary
-
-The Bridge and the Web Portal call an integration API surface, not the
-domain directly. REST DTOs at that boundary map into application-layer
-commands, and domain events are a separate set of types — the two never
-collapse into one. That indirection is what lets the domain model
-evolve (renaming an aggregate field, splitting a module, reshaping an
-event) without forcing a breaking change on Bridge or Web contracts, and
-keeps game/HTTP-shaped payloads from becoming the vocabulary the domain
-reasons in.
-
-## Cross-aggregate transactions
-
-Some operations span more than one module — buying a company share with
-funds from a bank account touches `Banking`, `Companies`, and
-`Characters`. The intended pattern is a single-transaction
-**application-layer coordinator**, not a saga/process manager:
-
-- The coordinating handler lives in the *most downstream* module
-  involved, per the dependency order in [Module boundaries](#module-boundaries)
-  (e.g. a "buy company share" handler lives in `Companies`, which
-  already depends on `Banking` and `Characters`).
-- It validates against each involved module's public Application query
-  contracts — the same cross-module contract rule used everywhere else.
-- It appends events to every affected aggregate stream (e.g. the bank
-  account's and the company's) inside a single Marten
-  session/transaction. This is atomic because every module's event
-  store lives in the same PostgreSQL database — there's no distributed
-  transaction to solve.
-
-A saga/process manager is deliberately not used here: sagas exist to
-coordinate steps across a real async or durable boundary (a remote
-system, a step that may not complete for hours), which doesn't apply
-when everything involved is one process and one database. That pattern
-is reserved for the day a cross-aggregate operation genuinely needs to
-span such a boundary (e.g. something waiting on the Bridge across
-multiple requests) — introducing saga machinery before then would be
-unwarranted complexity for a same-transaction problem.
-
-## Open questions
-
-Not yet decided, and deliberately not documented as fact above:
-
-- **Consistency guarantees per operation.** Which reads are strongly
-  consistent (e.g. character creation, a deposit) versus eventually
-  consistent (e.g. a projection-backed leaderboard), stated explicitly
-  per endpoint/operation.
-- **Failure semantics.** What happens when the Bridge crashes before vs.
-  after the Core Backend acknowledges an event; whether a projection
-  failure blocks reads or is allowed to lag behind its event stream;
-  how the Bridge and Core Backend each behave when PostgreSQL or
-  Keycloak is unavailable (reject, buffer, degrade).
-- **Event ingestion identifiers.** Whether event identity (`eventId`),
-  request/command identity (`requestId`), and aggregate identity
-  (`aggregateId` + `expectedVersion`) are tracked as distinct concepts
-  in the ingestion path, rather than one id doing duty for idempotency,
-  retries, and ordering all at once. The previous description of a
-  batched `POST /api/events/batch` endpoint was removed from this doc
-  because it no longer matches how ingestion works — a corrected
-  description belongs here once ingestion is finalized.
+`eliferpg-core`'s internal conventions — event sourcing, module
+boundaries, cross-module transactions, and consistency/failure
+guarantees — are documented separately in
+[Core Backend Design](core-backend-design.md), since they're internal
+conventions rather than system topology.

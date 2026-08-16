@@ -16,6 +16,7 @@ nav:
   - Development:
       - development/index.md
       - Architecture: development/architecture.md
+      - Core Backend Design: development/core-backend-design.md
       - Design System: development/design-system.md
   - Hosting Documentation:
       - hosting/index.md
