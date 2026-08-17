@@ -28,8 +28,8 @@ extra_css:
 
 theme:
   # variant: classic
-  custom_dir: overrides
-  favicon: assets/logo.png
+  logo: assets/logo.svg
+  favicon: assets/logo-icon.png
   language: en
   features:
     - announce.dismiss
@@ -58,11 +58,6 @@ theme:
     - search.highlight
     # - toc.follow
     # - toc.integrate
-
-  # Inline SVG instead of an <img> — lets extra.css recolor it per scheme.
-  # (theme.logo would take priority and force an <img src> if both were set.)
-  icon:
-    logo: eliferpg/logo
 
   font:
     text: Inter

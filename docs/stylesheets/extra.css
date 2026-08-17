@@ -29,18 +29,15 @@
 }
 
 /*
- * The logo mark is an inline SVG (theme.icon.logo, not theme.logo — see
- * design-system.md) with a black base fill, recolored here per scheme.
- * Dark mode uses light grey instead of staying deep blue: the dark
- * canvas already carries a lighter accent blue on links, and a second,
- * different-toned blue on the logo right next to it reads as a mismatch
- * rather than a choice. This keeps the link color as the only blue in
- * dark mode.
+ * The logo is theme.logo (an <img>, not an inlined icon — see
+ * design-system.md), so it can't be recolored with a CSS `fill`. Instead
+ * the header swaps in the pre-rendered grey variant for dark mode via
+ * `content: url(...)`. Dark mode uses light grey instead of staying blue:
+ * the dark canvas already carries a lighter accent blue on links, and a
+ * second, different-toned blue on the logo right next to it reads as a
+ * mismatch rather than a choice. This keeps the link color as the only
+ * blue in dark mode.
  */
-[data-md-color-scheme="default"] .md-logo svg {
-  fill: #1c4fc0;
-}
-
-[data-md-color-scheme="slate"] .md-logo svg {
-  fill: #ddd9d1;
+[data-md-color-scheme="slate"] .md-logo img {
+  content: url("../assets/logo-light.svg");
 }

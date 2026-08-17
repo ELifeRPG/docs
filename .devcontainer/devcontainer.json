@@ -7,5 +7,6 @@
   "service": "workspace",
   "workspaceFolder": "/workspace",
   "initializeCommand": "bash .devcontainer/initialize.sh",
-  "postCreateCommand": "uv sync"
+  "postCreateCommand": "uv sync",
+  "shutdownAction": "stopCompose"
 }
