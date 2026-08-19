@@ -11,8 +11,6 @@ site_name: ELifeRPG
 
 nav:
   - Home: index.md
-  - Player Guide:
-      - player/index.md
   - Development:
       - development/index.md
       - Architecture: development/architecture.md

@@ -41,6 +41,11 @@ The logo is a bold, geometric "E" mark, stored as a vector.
 - **Minimum size.** Don't render it below ~24px — the letterform's angles
   stop reading clearly below that.
 
+A wordmark lockup (the mark plus "ELIFE RPG" set in Inter) exists for wide
+header contexts — the docs homepage hero, README banner — where the mark
+alone would be too small to anchor the layout. Same two-color, same
+light/dark rule as the mark on its own.
+
 ## Color palette
 
 The palette starts from the logo's own blue, then shifts to a deeper, more

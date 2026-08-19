@@ -46,9 +46,6 @@ graph TB
   Web[Web Portal<br/>eliferpg-webapp, Nuxt]
   Web -- "OIDC Authorization Code + PKCE" --> KC
   Web -- "REST, Bearer JWT" --> Core
-
-  Theme[Keycloak Theme<br/>keycloak-theme-eliferpg]
-  Theme -. "build artifact (JAR),<br/>deployed into" .-> KC
 ```
 
 | Component | Repo | Stack | Exposes | Talks to |
@@ -57,7 +54,6 @@ graph TB
 | Bridge API | `eliferpg-reforger-bridge` | .NET, ASP.NET Core minimal API | Game-sliced REST endpoints (session lifecycle, banking, characters, companies) | Keycloak, Core Backend |
 | Core Backend | `eliferpg-core` | .NET modulith (ASP.NET Core) | REST + OpenAPI | Keycloak, PostgreSQL |
 | Web Portal | `eliferpg-webapp` | Nuxt 4 (Vue 3), Nitro BFF routes | Browser-facing pages, session-cookie backed | Keycloak, Core Backend |
-| Keycloak Theme | `keycloak-theme-eliferpg` | Keycloakify (React + Vite) | Build-only: theme JAR | Deployed into Keycloak, no runtime calls |
 
 The Bridge API's only reason to exist as a separate service is that the
 gameserver process needs a **local, low-latency, unauthenticated** endpoint

@@ -41,3 +41,20 @@
 [data-md-color-scheme="slate"] .md-logo img {
   content: url("../assets/logo-light.svg");
 }
+
+/*
+ * Homepage hero wordmark — same light/dark swap approach as the nav logo
+ * above, using the transparent header variants (not the -bg ones, which
+ * are for opaque contexts like the README/social previews).
+ */
+.eliferpg-hero {
+  display: block;
+  max-width: 480px;
+  width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+}
+
+[data-md-color-scheme="slate"] .eliferpg-hero {
+  content: url("../assets/logo-header-light.png");
+}

@@ -1,3 +1,9 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-header-light-bg.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo-header-bg.png">
+  <img alt="ELifeRPG" src="docs/assets/logo-header-bg.png">
+</picture>
+
 # ELifeRPG Docs
 
 Documentation site for the ELifeRPG project, built with [Zensical](https://zensical.org/).
